@@ -1,8 +1,12 @@
-FROM centos:centos7 as devel
+FROM debian:bullseye as devel
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt update -y && \
+    apt install -y wget git libssl-dev build-essential gfortran
 
 ## Install CMake 3.18.4
-RUN yum install -y openssl-devel && \
-    wget https://github.com/Kitware/CMake/releases/download/v3.18.4/cmake-3.18.4.tar.gz --directory-prefix=/tmp && \
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.18.4/cmake-3.18.4.tar.gz --directory-prefix=/tmp && \
     cd /tmp &&\
     tar -xvzf cmake-3.18.4.tar.gz &&\
     cd /tmp/cmake-3.18.4 &&\
@@ -29,6 +33,6 @@ RUN git clone https://github.com/FluidNumerics/hopr.git /tmp/hopr && \
     make && make install &&\
     rm -rf /tmp/hopr
 
-FROM centos:centos7
+FROM debian:bullseye
 
 COPY --from=devel /apps/ /apps/
