@@ -1,38 +1,40 @@
-FROM debian:bullseye as devel
+FROM gcr.io/cmg-build-env/cmg-gcc-6.5.0-openmpi-4.0.2-x86_hdf5 as devel
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt update -y && \
-    apt install -y wget git libssl-dev build-essential gfortran
+ADD ./ /tmp/hopr/
 
-## Install CMake 3.18.4
-RUN wget https://github.com/Kitware/CMake/releases/download/v3.18.4/cmake-3.18.4.tar.gz --directory-prefix=/tmp && \
-    cd /tmp &&\
-    tar -xvzf cmake-3.18.4.tar.gz &&\
-    cd /tmp/cmake-3.18.4 &&\
-    ./bootstrap --prefix=/usr/local &&\
-    make &&\
-    make install
+RUN apt-get update -y && \
+    apt-get install -y wget git
 
 # BLAS and Lapack
-RUN wget https://github.com/Reference-LAPACK/lapack/archive/v3.9.0.tar.gz --directory-prefix=/tmp/ &&\
+RUN . /etc/profile.d/z10_spack_environment.sh && \
+    wget https://github.com/Reference-LAPACK/lapack/archive/v3.9.0.tar.gz --directory-prefix=/tmp/ &&\
     cd /tmp && tar -xvzf v3.9.0.tar.gz && mkdir -p /tmp/lapack-3.9.0/build && \
     cd /tmp/lapack-3.9.0/build && \
-    /usr/local/bin/cmake -DCMAKE_INSTALL_PREFIX=/apps/hopr /tmp/lapack-3.9.0 &&  \
+    cmake -DCMAKE_INSTALL_PREFIX=/opt/view /tmp/lapack-3.9.0 &&  \
     make && make install &&\
     rm -rf /tmp/lapack-3.9.0
 
-ENV LD_LIBRARY_PATH=/apps/hopr/lib:$LD_LIBRARY_PATH \
-    PATH=/apps/hopr/bin:$PATH
+# CGNS
+RUN . /etc/profile.d/z10_spack_environment.sh && \
+    wget https://github.com/Reference-LAPACK/lapack/archive/v3.9.0.tar.gz --directory-prefix=/tmp/ &&\
+    cd /tmp && tar -xvzf v3.9.0.tar.gz && mkdir -p /tmp/lapack-3.9.0/build && \
+    cd /tmp/lapack-3.9.0/build && \
+    cmake -DCMAKE_INSTALL_PREFIX=/opt/hopr /tmp/lapack-3.9.0 &&  \
+    make && make install &&\
+    rm -rf /tmp/lapack-3.9.0
+
 
 #HOPR
-RUN git clone https://github.com/FluidNumerics/hopr.git /tmp/hopr && \
+RUN . /etc/profile.d/z10_spack_environment.sh && \
     mkdir /tmp/hopr/build && \
     cd /tmp/hopr/build && \
-    /usr/local/bin/cmake -DCMAKE_INSTALL_PREFIX=/apps/hopr /tmp/hopr &&\
+    HDF5_ROOT=/opt/view CGNS_ROOT= cmake -DBUILD_HDF5= -DBUILD_CGNS= -DCMAKE_INSTALL_PREFIX=/opt/view /tmp/hopr &&\
     make && make install &&\
     rm -rf /tmp/hopr
 
-FROM debian:bullseye
+FROM gcr.io/cmg-build-env/cmg-gcc-6.5.0-openmpi-4.0.2-x86_hdf5
 
-COPY --from=devel /apps/ /apps/
+COPY --from=devel /opt/ /opt/
+
