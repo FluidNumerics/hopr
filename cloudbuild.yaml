@@ -1,4 +1,11 @@
 
 steps:
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build','-t','gcr.io/self-fluids/hopr','.']
+    args: ['build','-t','gcr.io/${PROJECT_ID}/hopr:${_IMAGE_TAG}','.']
+
+images: ['gcr.io/${PROJECT_ID}/hopr:${_IMAGE_TAG}']
+
+timeout: 3600s
+
+substitutions:
+        _IMAGE_TAG: 'latest'
