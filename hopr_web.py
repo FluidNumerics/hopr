@@ -52,7 +52,9 @@ def meshgen():
     import os
     import subprocess
 
-    parameter_file = request.args.get("parameter_ini","tutorials/1-01-cartbox/parameter.ini")
+    bucket = request.args.get("bucket","tutorials/1-01-cartbox/parameter.ini")
+    parameter_ini = request.args.get("parameter_ini","tutorials/1-01-cartbox/parameter.ini")
+    mesh_file = request.args.get("mesh_file","none")
     local_path = "/workspace/"+random_string(32)
     os.mkdir(local_path)
     logging.info('Processing HOPr parameter file {}'.format(parameter_file))
