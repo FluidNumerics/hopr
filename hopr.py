@@ -13,8 +13,8 @@ def random_string(length):
     import random
     import string
 
-    pool = string.letters + string.digits
-    return ''.join(random.choice(pool) for i in xrange(length))
+    pool = string.ascii_letters + string.digits
+    return ''.join(random.choice(pool) for i in range(length))
 
 def copy_local_directory_to_gcs(local_path, bucket, gcs_path):
     """Recursively copy a directory of files to GCS.
@@ -39,34 +39,37 @@ def copy_local_directory_to_gcs(local_path, bucket, gcs_path):
 def index():
     """HOPr Web API Version 0.0.0."""
 
+    bucket = request.args.get("bucket","hopr-parameter-files")
     client = storage.Client()
-    bucket = client.get_bucket(bucketName)
+    bucket = client.get_bucket(bucket)
     blobs = bucket.list_blobs()
     files = []
     for blob in blobs:
         files.append(blob.name)
-    return jsonify(files)
+
+    resp = {"bucket":bucketName,"mesh_files":[files]}
+    return jsonify(resp)
 
 @app.route("/meshgen", methods=['GET'])
 def meshgen():
     import os
     import subprocess
 
-    bucket = request.args.get("bucket","tutorials/1-01-cartbox/parameter.ini")
+    bucket = request.args.get("bucket","hopr-parameter-files")
     parameter_ini = request.args.get("parameter_ini","tutorials/1-01-cartbox/parameter.ini")
     mesh_file = request.args.get("mesh_file","none")
     local_path = "/workspace/"+random_string(32)
     os.mkdir(local_path)
-    logging.info('Processing HOPr parameter file {}'.format(parameter_file))
+    logging.info('Processing HOPr parameter file {}'.format(parameter_ini))
 
     # Download parameter file from bucket into container
     client = storage.Client()
     bucket = client.get_bucket(bucketName)
-    blob = bucket.blob(parameter_file)
+    blob = bucket.blob(parameter_ini)
     try:
         blob.download_to_filename("/workspace/parameter.ini")
     except:
-        err = 'Failed to download {} from {}'.format(parameter_file,bucketName
+        err = 'Failed to download {} from {}'.format(parameter_ini,bucketName)
         logging.error(err)
         handle_error(err)
 
@@ -77,7 +80,7 @@ def meshgen():
                             capture_output=True)
     if output.returncode == 0:
       copy_local_directory_to_gcs(local_path, bucket, local_path)
-      return jsonify( {gcs_bucket=bucketName,path=local_path} ) 
+      return jsonify( {"gcs_bucket":bucketName,"path":local_path} ) 
     else:
       handle_error(output.stderr)
 

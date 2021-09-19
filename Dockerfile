@@ -41,18 +41,17 @@ FROM gcr.io/cmg-build-env/cmg-gcc-6.5.0-openmpi-4.0.2-x86_hdf5
 COPY --from=devel /opt/ /opt/
 LABEL maintainer="joe@fluidnumerics.com"
 
-WORKDIR /app
-COPY ./hopr_web.py /app
-COPY ./requirements.txt /app
+COPY ./hopr.py /app
 
 # Install python and flask
 RUN apt-get update -y \
 &&  apt-get install -y python3 python3-pip \
-&&  pip3 install -r /app/requirements.txt
+&&  pip3 install Flask google-cloud-storage gunicorn
 
 
 ENV PORT 8080
 ENV PYTHONBUFFERED True
 
-CMD exec gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 0 app:app
+WORKDIR /app
+ENTRYPOINT "gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 0 hopr:app"
 
