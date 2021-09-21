@@ -87,7 +87,7 @@ ENDMACRO()
 
 OPTION(HOPR_MPI "Compile SINGLE or MPI version" OFF)
 OPTION(HOPR_BUILD_YPLUSESTIMATOR "Compile and build Y+-Estimator" OFF)
-OPTION(HOPR_BUILD_HDF5 "Compile and build hdf5 library" OFF)
+OPTION(HOPR_BUILD_HDF5 "Compile and build hdf5 library" ON)
 OPTION(HOPR_BUILD_CGNS "Compile and build CGNS library" ON)
 SET(HOPR_CGNS_INT "32" CACHE STRING "integer type in CGNS lib")
 
